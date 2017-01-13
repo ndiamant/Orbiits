@@ -4,11 +4,12 @@ import numpy as np
 
 pygame.init()
 
+refresh = False
 width = 1700
 height = 1000
 v_i = 200
-num = 10 
-dt = 1
+num = 300 
+dt = 9
 
 surface = pygame.display.set_mode((width, height), 0, 32)
 
@@ -20,8 +21,9 @@ def center(pos):
 def uncenter(pos):
     return  pos - np.array([ width / 2, height / 2])
 
-def step(moon_list, motion_law):
-
+def step(moon_list, motion_law, refresh = False):
+    if refresh:
+        surface.fill((0,0,0))
     for moon in moon_list:
         motion_law(moon) 
         moon.draw(surface)
@@ -62,6 +64,8 @@ def gravity(moon):
 def linear(moon):
     pos = moon.pos
     vel = moon.vel
+    moon.color = color_list[int(pos[0]) % 255]
+    moon.size = int(50 - min(48, 10e-2 *  np.linalg.norm(uncenter(pos))))
     acc = -100000 * uncenter(pos) / np.linalg.norm(uncenter(pos))**2
     acc = max_lim(acc)
     vel += acc * dt / 1000
@@ -76,9 +80,12 @@ def zero(moon):
     pos += vel * dt / 1000
 
 
+color_list = [(3*i%255, 5*i%255, 7*i%255) for i in range(255)] 
+
+
 while True:
     
-    step(ml,linear)   
+    step(ml, linear, refresh)   
 
     for event in pygame.event.get():
         if event.type == QUIT:
