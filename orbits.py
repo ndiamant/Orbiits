@@ -4,11 +4,12 @@ import numpy as np
 
 pygame.init()
 
+refresh = False
 width = 1700
 height = 1000
 v_i = 200
-num = 1000 
-dt = 50
+num = 300 
+dt = 9
 
 surface = pygame.display.set_mode((width, height), 0, 32)
 
@@ -20,16 +21,14 @@ def center(pos):
 def uncenter(pos):
     return  pos - np.array([ width / 2, height / 2])
 
-def step(moon_list, motion_law):
-    #surface.fill((0,0,0))
-
+def step(moon_list, motion_law, refresh = False):
+    if refresh:
+        surface.fill((0,0,0))
     for moon in moon_list:
-        moon.step(motion_law)
+        motion_law(moon) 
         moon.draw(surface)
     
     pygame.display.update()
-    #pygame.time.wait(dt)
-
 
 class Moon:
     def __init__(self, pos, color, size, vel):
@@ -41,11 +40,11 @@ class Moon:
     def draw(self, window):
         pygame.draw.circle(window, self.color, (int(self.pos[0]), int(self.pos[1])), self.size, 0)
 
-    def step(self, motion_law):
-        motion_law(self.pos, self.vel)
-
+# Moon list
 ml = [Moon(pos = np.array([np.random.rand() * width, np.random.rand() * height]), color = np.random.randint(0,255,3), size = np.random.randint(2,5), vel = np.random.randn(2) * v_i) for _ in range(num)]
 
+# Take 2x1 np array and cap magnitude to lim
+# TODO: make this description true
 def max_lim(vel, lim = 10000):
     signs = vel / np.abs(vel)
     vel = np.abs(vel)
@@ -53,26 +52,40 @@ def max_lim(vel, lim = 10000):
     vel *= signs
     return vel
 
-def gravity(pos, vel):
+# An example of a motion law
+def gravity(moon):
+    pos = moon.pos
+    vel = moon.vel 
     acc = -100000000 * uncenter(pos) / np.linalg.norm(uncenter(pos))**3
     acc = max_lim(acc)
     vel += acc * dt / 1000
     pos += vel * dt / 1000
 
-def linear(pos, vel):
+def linear(moon):
+    pos = moon.pos
+    vel = moon.vel
+    moon.color = color_list[int(pos[0]) % 255]
+    moon.size = int(50 - min(48, 10e-2 *  np.linalg.norm(uncenter(pos))))
     acc = -100000 * uncenter(pos) / np.linalg.norm(uncenter(pos))**2
     acc = max_lim(acc)
     vel += acc * dt / 1000
     pos += vel * dt / 1000
 
 
-def zero(pos, vel):
+def zero(moon):
+    pos = moon.pos
+    vel = moon.vel
     acc = -1000 * uncenter(pos) / np.linalg.norm(uncenter(pos))
     vel += acc * dt / 1000
     pos += vel * dt / 1000
+
+
+color_list = [(3*i%255, 5*i%255, 7*i%255) for i in range(255)] 
+
+
 while True:
     
-    step(ml,linear)   
+    step(ml, linear, refresh)   
 
     for event in pygame.event.get():
         if event.type == QUIT:
