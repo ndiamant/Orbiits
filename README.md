@@ -1,2 +1,2 @@
-# Orbiits
+# Orbits
 Python fun!
