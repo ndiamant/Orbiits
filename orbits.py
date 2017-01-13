@@ -8,8 +8,8 @@ refresh = False
 width = 1700
 height = 1000
 v_i = 200
-num = 300 
-dt = 9
+num = 5 
+dt = 4
 
 surface = pygame.display.set_mode((width, height), 0, 32)
 
@@ -21,12 +21,16 @@ def center(pos):
 def uncenter(pos):
     return  pos - np.array([ width / 2, height / 2])
 
-def step(moon_list, motion_law, refresh = False):
+def step(moon_list, motion_law, color_rule = None, size_rule = None, refresh = False):
     if refresh:
         surface.fill((0,0,0))
     for moon in moon_list:
         motion_law(moon) 
         moon.draw(surface)
+        if color_rule:
+            color_rule(moon)
+        if size_rule:
+            size_rule(moon)
     
     pygame.display.update()
 
@@ -64,8 +68,6 @@ def gravity(moon):
 def linear(moon):
     pos = moon.pos
     vel = moon.vel
-    moon.color = color_list[int(pos[0]) % 255]
-    moon.size = int(50 - min(48, 10e-2 *  np.linalg.norm(uncenter(pos))))
     acc = -100000 * uncenter(pos) / np.linalg.norm(uncenter(pos))**2
     acc = max_lim(acc)
     vel += acc * dt / 1000
@@ -79,13 +81,22 @@ def zero(moon):
     vel += acc * dt / 1000
     pos += vel * dt / 1000
 
+def lin_dist(moon):
+    moon.size = int(50 - min(48, 10e-2 *  np.linalg.norm(uncenter(moon.pos))))
 
-color_list = [(3*i%255, 5*i%255, 7*i%255) for i in range(255)] 
+#color_list = [(3*i%255, 5*i%255, 7*i%255) for i in range(255)]
+color_list = [(10*i,10*j,10*k) for i in range(25) for j in range(25) for k in range(25)]
 
+def vel_color(moon):
+    moon.color = color_list[int(moon.vel[0]) % len(color_list)]
 
+def x_color(moon):
+    moon.size = int(50 - min(48, 10e-2 *  np.linalg.norm(uncenter(moon.pos))))
+
+# Where everything runs. change arguments of step for customization
 while True:
     
-    step(ml, linear, refresh)   
+    step(moon_list = ml, motion_law = linear, refresh = refresh, color_rule = vel_color, size_rule = lin_dist)   
 
     for event in pygame.event.get():
         if event.type == QUIT:
