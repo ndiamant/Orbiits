@@ -8,8 +8,10 @@ refresh = False
 width = 1700
 height = 1000
 v_i = 200
-num = 5 
-dt = 4
+num = 2 
+dt = 7 
+size_min = 0
+size_max = 1
 
 surface = pygame.display.set_mode((width, height), 0, 32)
 
@@ -45,7 +47,7 @@ class Moon:
         pygame.draw.circle(window, self.color, (int(self.pos[0]), int(self.pos[1])), self.size, 0)
 
 # Moon list
-ml = [Moon(pos = np.array([np.random.rand() * width, np.random.rand() * height]), color = np.random.randint(0,255,3), size = np.random.randint(2,5), vel = np.random.randn(2) * v_i) for _ in range(num)]
+ml = [Moon(pos = np.array([np.random.rand() * width, np.random.rand() * height]), color = np.random.randint(0,255,3), size = np.random.randint(size_min, size_max), vel = np.random.randn(2) * v_i) for _ in range(num)]
 
 # Take 2x1 np array and cap magnitude to lim
 # TODO: make this description true
@@ -56,7 +58,7 @@ def max_lim(vel, lim = 10000):
     vel *= signs
     return vel
 
-# An example of a motion law
+# example motion laws
 def gravity(moon):
     pos = moon.pos
     vel = moon.vel 
@@ -81,11 +83,41 @@ def zero(moon):
     vel += acc * dt / 1000
     pos += vel * dt / 1000
 
+# example size rules
 def lin_dist(moon):
     moon.size = int(50 - min(48, 10e-2 *  np.linalg.norm(uncenter(moon.pos))))
 
+# example color rules
+
+# used in x color dependence imange
 #color_list = [(3*i%255, 5*i%255, 7*i%255) for i in range(255)]
-color_list = [(10*i,10*j,10*k) for i in range(25) for j in range(25) for k in range(25)]
+
+# all RGB combos, used in velocity color
+#color_list = [(10*i,10*j,10*k) for i in range(25) for j in range(25) for k in range(25)]
+
+# black and white
+#color_list = [(i,i,i) for i in range(255)]
+
+# black and white opposite order
+#color_list = [(255-i,255-i,255-i) for i in range(255)]
+
+# black and red
+color_list = [(255-i,0,0) for i in range(255)]
+
+# modify existing colors
+def permute(moon):
+    r,g,b = moon.color
+    r = (r+1) % 255
+    g = (g+1) % 255
+    b = (b+1) % 255
+    moon.color = (r,g,b)
+
+
+def dist_fade(moon):
+    d = np.linalg.norm(uncenter(moon.pos))
+    l = len(color_list)
+    ind = int(l - 1 - min(90 * d / l, l-1))  
+    moon.color = color_list[ind]
 
 def vel_color(moon):
     moon.color = color_list[int(moon.vel[0]) % len(color_list)]
@@ -96,7 +128,7 @@ def x_color(moon):
 # Where everything runs. change arguments of step for customization
 while True:
     
-    step(moon_list = ml, motion_law = linear, refresh = refresh, color_rule = vel_color, size_rule = lin_dist)   
+    step(moon_list = ml, motion_law = linear, refresh = refresh, color_rule = permute, size_rule =lin_dist)   
 
     for event in pygame.event.get():
         if event.type == QUIT:
