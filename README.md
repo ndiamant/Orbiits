@@ -6,3 +6,4 @@ You can do stuff like this:
 ![x dependent color](https://github.com/ndiamant/Orbits/blob/master/x_color_dependence.png)
 ![velocity dependent color](https://github.com/ndiamant/Orbits/blob/master/vel_color.png)
 ![2 hour simulation](https://github.com/ndiamant/Orbits/blob/master/2hours.png)
+![Black and white fade with distance](https://github.com/ndiamant/Orbits/blob/master/bw.png)
